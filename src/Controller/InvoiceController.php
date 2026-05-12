@@ -12,6 +12,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 #[Route('/invoice')]
 final class InvoiceController extends AbstractController
@@ -116,6 +118,51 @@ public function show(Invoice $invoice): Response
         return new Response();
     }
     // ==========================================================
+
+#[Route('/{id}/send', name: 'app_invoice_send', methods: ['POST'])]
+    public function sendEmail(Invoice $invoice, MailerInterface $mailer, Request $request): Response
+    {
+        // 1. Sécurité : seul le proprio peut envoyer la facture
+        if ($invoice->getOwner() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // 2. Vérification du jeton CSRF (C'est ce qui manquait pour valider le clic)
+        if (!$this->isCsrfTokenValid('send-email' . $invoice->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Sécurité : Jeton invalide.');
+            return $this->redirectToRoute('app_invoice_show', ['id' => $invoice->getId()]);
+        }
+
+        // 3. Génération du contenu PDF pour la pièce jointe
+        $pdfOptions = new Options();
+        $pdfOptions->set('defaultFont', 'Arial');
+        $dompdf = new Dompdf($pdfOptions);
+        
+        $html = $this->renderView('invoice/pdf.html.twig', [
+            'invoice' => $invoice,
+        ]);
+        
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        
+        $pdfOutput = $dompdf->output();
+
+        // 4. Création de l'email
+        $email = (new Email())
+            ->from('noreply@ton-saas.com')
+            ->to($invoice->getCustomer()->getEmail())
+            ->subject('Votre facture ' . $invoice->getNumber())
+            ->text('Bonjour ' . $invoice->getCustomer()->getName() . ', veuillez trouver ci-joint votre facture.')
+            ->attach($pdfOutput, 'facture-' . $invoice->getNumber() . '.pdf', 'application/pdf');
+
+        // 5. Envoi
+        $mailer->send($email);
+
+        $this->addFlash('success', 'La facture a été envoyée avec succès au client !');
+
+        return $this->redirectToRoute('app_invoice_show', ['id' => $invoice->getId()]);
+    }
 
     #[Route('/{id}/pay', name: 'app_invoice_pay', methods: ['POST'])]
     public function pay(Invoice $invoice, EntityManagerInterface $entityManager): Response
