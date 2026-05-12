@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ invoice.number }}</title>
+    <style>
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; font-size: 12px; }
+        .header { margin-bottom: 50px; }
+        .company-info { float: left; width: 50%; }
+        .customer-info { float: right; width: 40%; text-align: right; }
+        .clear { clear: both; }
+        .invoice-details { margin-bottom: 30px; margin-top: 20px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table th { background: #f0f0f0; padding: 10px; border-bottom: 2px solid #ddd; text-align: left; }
+        .table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .total-box { float: right; width: 30%; margin-top: 20px; background: #3f51b5; color: white; padding: 15px; text-align: right; }
+        .footer { position: fixed; bottom: 0; width: 100%; font-size: 9px; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-info">
+            {# TES INFOS (L'émetteur) #}
+            <h2 style="color: #3f51b5; margin-bottom: 5px;">{{ invoice.owner.raisonSociale|upper }}</h2>
+            <p>
+                {{ invoice.owner.firstName }} {{ invoice.owner.lastName }}<br>
+                SIRET : {{ invoice.owner.siret|default('Non renseigné') }}<br>
+                IBAN : {{ invoice.owner.iban }}
+            </p>
+        </div>
+        <div class="customer-info">
+            {# LES INFOS DU CLIENT #}
+            <p style="color: #777; margin-bottom: 5px;">FACTURÉ À</p>
+            <strong>{{ invoice.customer.name }}</strong><br>
+            {{ invoice.customer.address|nl2br }}<br>
+            {{ invoice.customer.email }}
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div class="invoice-details">
+        <h1 style="margin: 0;">FACTURE</h1>
+        <p>Numéro : <strong>{{ invoice.number }}</strong><br>
+        Date : {{ invoice.createdAt|date('d/m/Y') }}</p>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Désignation</th>
+                <th style="text-align: center;">Qté</th>
+                <th style="text-align: right;">Prix Unitaire</th>
+                <th style="text-align: right;">Total HT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.invoiceItems %}
+                <tr>
+                    <td>
+                        <strong>{{ item.product.name }}</strong><br>
+                        <small>{{ item.product.description }}</small>
+                    </td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">{{ item.product.price|number_format(2, ',', ' ') }} €</td>
+                    <td style="text-align: right;">{{ (item.quantity * item.product.price)|number_format(2, ',', ' ') }} €</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-box">
+        <span style="font-size: 14px;">TOTAL À RÉGLER</span><br>
+        <strong style="font-size: 24px;">{{ invoice.totalAmount|number_format(2, ',', ' ') }} €</strong>
+    </div>
+
+    <div class="footer">
+        <p>
+            <strong>Informations légales :</strong> {{ invoice.owner.raisonSociale }} 
+            {% if invoice.owner.siret %} - SIRET : {{ invoice.owner.siret }}{% endif %}
+            <br>
+            Conditions de paiement : Paiement à réception par virement bancaire sur l'IBAN mentionné ci-dessus.
+            En cas de retard, une indemnité forfaitaire de 40€ pour frais de recouvrement sera appliquée.
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des produits{% endblock %}
+
+{% block page_title %}Gestion du Catalogue{% endblock %}
+
+{% block body %}
+    <div class="mb-6 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-700">Mes Produits & Services</h3>
+        <a href="{{ path('app_product_new') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-sm transition-all flex items-center">
+            <span class="mr-2">+</span> Nouveau produit
+        </a>
+    </div>
+
+    <div class="bg-white shadow-md rounded-xl overflow-hidden border border-gray-100">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nom / Description</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Prix Unitaire</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Unité</th>
+                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for product in products %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-bold text-gray-900">{{ product.name }}</div>
+                            <div class="text-sm text-gray-500 truncate max-w-xs">{{ product.description }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-semibold text-gray-900">{{ product.price }} €</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                {{ product.unit }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="{{ path('app_product_show', {'id': product.id}) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Voir</a>
+                            <a href="{{ path('app_product_edit', {'id': product.id}) }}" class="text-amber-600 hover:text-amber-900">Modifier</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-500">
+                            Aucun produit trouvé. <a href="{{ path('app_product_new') }}" class="text-indigo-600 underline">Créez votre premier produit</a>.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

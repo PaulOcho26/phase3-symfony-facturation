@@ -1,0 +1,110 @@
+{{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+    <div class="bg-white shadow-md rounded-xl p-8 border border-gray-100">
+        
+        {# Section 1 : Le Client #}
+        <div class="mb-8 pb-6 border-b border-gray-100">
+            <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Informations Générales</h4>
+            <div class="max-w-md">
+                {{ form_label(form.customer, 'Sélectionner le client', {'label_attr': {'class': 'block text-sm font-semibold text-gray-700 mb-1'}}) }}
+                {{ form_widget(form.customer) }}
+                <div class="text-red-500 text-xs mt-1">{{ form_errors(form.customer) }}</div>
+            </div>
+        </div>
+
+        {# Section 2 : Les Lignes de la facture #}
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Produits & Services</h4>
+                <button type="button" 
+                        class="add-item-button text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1 rounded-lg font-semibold transition-colors"
+                        data-collection-holder-class="invoice-items-container">
+                    + Ajouter une ligne
+                </button>
+            </div>
+
+            {# En-tête des colonnes (visuel uniquement) #}
+            <div class="grid grid-cols-12 gap-4 mb-2 px-2">
+                <div class="col-span-8 text-xs font-bold text-gray-400 uppercase">Produit / Service</div>
+                <div class="col-span-3 text-xs font-bold text-gray-400 uppercase">Quantité</div>
+                <div class="col-span-1"></div>
+            </div>
+
+            {# Conteneur des lignes #}
+            <div class="invoice-items-container space-y-3"
+                 data-index="{{ form.invoiceItems|length > 0 ? form.invoiceItems|last.vars.name + 1 : 0 }}"
+                 data-prototype="{{ form_widget(form.invoiceItems.vars.prototype)|e('html_attr') }}">
+                
+                {% for item in form.invoiceItems %}
+                    <div class="invoice-item-row grid grid-cols-12 gap-4 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+                        <div class="col-span-8">{{ form_widget(item.product) }}</div>
+                        <div class="col-span-3">{{ form_widget(item.quantity) }}</div>
+                        <div class="col-span-1 text-right">
+                            <button type="button" class="text-red-400 hover:text-red-600 remove-item-button">✕</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Section 3 : Actions #}
+        <div class="mt-10 pt-6 border-t border-gray-100 flex items-center justify-end space-x-4">
+            <a href="{{ path('app_invoice_index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700">Annuler</a>
+            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg transition-all transform hover:-translate-y-1">
+                {{ button_label|default('Enregistrer la facture (Brouillon)') }}
+            </button>
+        </div>
+    </div>
+{{ form_end(form) }}
+
+{# Petit JavaScript pour gérer l'ajout/suppression dynamique #}
+<script>
+// Cette fonction contient toute la logique d'ajout de ligne
+function initializeCollection() {
+    const addButton = document.querySelector('.add-item-button');
+    const collectionHolder = document.querySelector('.invoice-items-container');
+
+    if (!addButton || !collectionHolder) return;
+
+    // Fonction pour supprimer une ligne
+    const attachRemoveListener = (row) => {
+        const btn = row.querySelector('.remove-item-button');
+        if (btn) {
+            btn.addEventListener('click', () => row.remove());
+        }
+    };
+
+    // Attacher l'écouteur au bouton "Ajouter"
+    addButton.onclick = function() {
+        const prototype = collectionHolder.dataset.prototype;
+        const index = parseInt(collectionHolder.dataset.index);
+
+        // Créer l'élément HTML de la nouvelle ligne
+        const newRow = document.createElement('div');
+        newRow.classList.add('invoice-item-row', 'grid', 'grid-cols-12', 'gap-4', 'items-center', 'bg-gray-50', 'p-2', 'rounded-lg', 'border', 'border-gray-200');
+        
+        // Remplacer __name__ par l'index actuel dans le prototype
+        let content = prototype.replace(/__name__/g, index);
+        
+        // Injecter le contenu et ajouter le bouton de suppression
+        newRow.innerHTML = `
+            <div class="col-span-8">${content.match(/<select.*<\/select>/s)[0]}</div>
+            <div class="col-span-3">${content.match(/<input.*>/s)[0]}</div>
+            <div class="col-span-1 text-right">
+                <button type="button" class="text-red-400 hover:text-red-600 remove-item-button">✕</button>
+            </div>
+        `;
+
+        collectionHolder.appendChild(newRow);
+        collectionHolder.dataset.index = index + 1;
+
+        attachRemoveListener(newRow);
+    };
+
+    // Pour les lignes déjà présentes (en mode édition par exemple)
+    document.querySelectorAll('.invoice-item-row').forEach(row => attachRemoveListener(row));
+}
+
+// On lance la fonction au chargement normal ET au chargement Turbo
+document.addEventListener('DOMContentLoaded', initializeCollection);
+document.addEventListener('turbo:load', initializeCollection);
+</script>

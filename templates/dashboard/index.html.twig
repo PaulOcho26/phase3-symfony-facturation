@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Tableau de Bord{% endblock %}
+
+{% block body %}
+    <div class="mb-8">
+        <h3 class="text-2xl font-bold text-gray-800">Bienvenue, {{ app.user.firstName|default(app.user.email) }} 👋</h3>
+        <p class="text-gray-500">Résumé de l'entreprise <span class="font-semibold text-indigo-600">{{ app.user.raisonSociale|default('Non définie') }}</span></p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="text-xs font-bold text-gray-400 uppercase mb-1">Chiffre d'Affaires</div>
+            <div class="text-3xl font-black text-indigo-600">{{ totalCA|number_format(2, ',', ' ') }} €</div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div class="text-xs font-bold text-gray-400 uppercase mb-1">Total Clients</div>
+            <div class="text-3xl font-black text-gray-900">{{ totalClients }}</div>
+        </div>
+        
+        <div class="bg-indigo-600 p-6 rounded-xl shadow-md text-white">
+            <div class="font-bold mb-3">Actions rapides</div>
+            <a href="{{ path('app_invoice_new') }}" class="text-sm bg-white/20 hover:bg-white/30 p-2 rounded text-center block transition-colors">
+                + Créer une facture
+            </a>
+        </div>
+    </div>
+
+<div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+        <h4 class="text-sm font-bold text-gray-800 uppercase tracking-wider mb-6">Évolution du Chiffre d'Affaires</h4>
+        <div style="height: 300px;">
+            {{ render_chart(chart) }}
+        </div>
+    </div>
+
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-50 font-bold text-gray-800">Factures récentes</div>
+        <table class="w-full text-sm">
+            <tbody class="divide-y divide-gray-50">
+                {% for invoice in recentInvoices %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="p-4 font-bold text-indigo-600">{{ invoice.number }}</td>
+                        <td class="p-4">{{ invoice.customer.name }}</td>
+                        <td class="p-4 text-right font-black">{{ invoice.totalAmount|number_format(2, ',', ' ') }} €</td>
+                        <td class="p-4 text-right">
+                            <a href="{{ path('app_invoice_show', {id: invoice.id}) }}" class="text-indigo-600">Voir</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td class="p-8 text-center text-gray-400 italic">Aucune facture.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

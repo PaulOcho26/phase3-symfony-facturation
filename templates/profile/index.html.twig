@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block page_title %}Paramètres du compte{% endblock %}
+
+{% block body %}
+    <div class="max-w-2xl mx-auto">
+        {% for message in app.flashes('success') %}
+            <div class="mb-6 p-4 bg-green-100 border border-green-200 text-green-700 rounded-lg shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="bg-white shadow-md rounded-xl overflow-hidden border border-gray-100">
+            <div class="p-8 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="text-xl font-bold text-gray-900">Informations de l'entreprise</h3>
+                <p class="text-sm text-gray-500 mt-1">Ces informations apparaîtront sur vos factures.</p>
+            </div>
+
+            <div class="p-8">
+                {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            {{ form_row(form.firstName) }}
+                        </div>
+                        <div>
+                            {{ form_row(form.lastName) }}
+                        </div>
+                        <div class="md:col-span-2">
+                            {{ form_row(form.raisonSociale) }}
+                        </div>
+                        <div class="md:col-span-2">
+                            {{ form_row(form.iban) }}
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-gray-100 flex justify-end">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg transition-all transform hover:-translate-y-1">
+                            Mettre à jour le profil
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

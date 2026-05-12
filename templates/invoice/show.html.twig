@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Facture {{ invoice.number }}{% endblock %}
+
+{% block page_title %}Détails de la Facture{% endblock %}
+
+{% block body %}
+    <div class="max-w-4xl mx-auto">
+        <!-- Barre d'actions -->
+        <div class="mb-6 flex justify-between items-center">
+            <a href="{{ path('app_invoice_index') }}" class="text-indigo-600 hover:underline text-sm flex items-center">
+                ← Retour à la liste
+            </a>
+            <div class="flex space-x-3">
+                {# --- REMPLACE LE CONTENU DE CETTE DIV PAR CECI --- #}
+                {% if invoice.status == 'brouillon' %}
+                    <a href="{{ path('app_invoice_edit', {'id': invoice.id}) }}" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                        Modifier
+                    </a>
+
+                    <form method="post" action="{{ path('app_invoice_validate', {'id': invoice.id}) }}" onsubmit="return confirm('Une fois validée, cette facture ne pourra plus être modifiée. Confirmer ?');">
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                            Valider la facture
+                        </button>
+                    </form>
+                    
+                    {{ include('invoice/_delete_form.html.twig') }}
+                {% endif %}
+                
+{% if invoice.status == 'validée' or invoice.status == 'payée' %}
+    {# On utilise <a> au lieu de <button> pour déclencher le téléchargement #}
+    <a href="{{ path('app_invoice_pdf', {'id': invoice.id}) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+        Télécharger le PDF
+    </a>
+    
+    {# On ajoute le bouton "Payer" qui n'apparaît que si la facture est validée #}
+    {% if invoice.status == 'validée' %}
+        <form method="post" action="{{ path('app_invoice_pay', {'id': invoice.id}) }}" onsubmit="return confirm('Confirmer la réception du paiement ?');" class="inline">
+            <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                ✓ Marquer comme payée
+            </button>
+        </form>
+    {% endif %}
+{% endif %}
+                {# ------------------------------------------------ #}
+            </div>
+        </div>
+
+        <!-- Document Facture -->
+        <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+            <!-- En-tête Facture -->
+            <div class="p-8 border-b border-gray-100 flex justify-between items-start">
+                <div>
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Numéro de facture</div>
+                    <h3 class="text-3xl font-black text-gray-900">{{ invoice.number }}</h3>
+                    <div class="mt-2">
+                        {% if invoice.status == 'brouillon' %}
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-600 uppercase">Brouillon</span>
+                        {% elseif invoice.status == 'validée' %}
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-600 uppercase">En attente de paiement</span>
+                        {% else %}
+                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-green-100 text-green-600 uppercase">Payée</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Date d'émission</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ invoice.createdAt|date('d/m/Y') }}</div>
+                </div>
+            </div>
+
+            <!-- Infos Client & Entreprise -->
+            <div class="grid grid-cols-2 gap-8 p-8 bg-gray-50/50">
+                <div>
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Émetteur</div>
+                    <div class="text-sm font-bold text-gray-900">{{ app.user.raisonSociale|default('Mon Entreprise') }}</div>
+                    <div class="text-sm text-gray-600">IBAN : {{ app.user.iban|default('Non renseigné') }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Facturé à</div>
+                    <div class="text-sm font-bold text-gray-900">{{ invoice.customer.name }}</div>
+                    <div class="text-sm text-gray-600 whitespace-pre-line">{{ invoice.customer.address }}</div>
+                    <div class="text-sm text-gray-600">{{ invoice.customer.email }}</div>
+                </div>
+            </div>
+
+            <!-- Tableau des produits -->
+            <div class="p-8">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-100">
+                            <th class="py-4 text-xs font-bold text-gray-400 uppercase">Désignation</th>
+                            <th class="py-4 text-xs font-bold text-gray-400 uppercase text-center">Qté</th>
+                            <th class="py-4 text-xs font-bold text-gray-400 uppercase text-right">Prix Unitaire</th>
+                            <th class="py-4 text-xs font-bold text-gray-400 uppercase text-right">Total HT</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for item in invoice.invoiceItems %}
+                            <tr>
+                                <td class="py-4">
+                                    <div class="font-bold text-gray-900">{{ item.product.name }}</div>
+                                    <div class="text-xs text-gray-500">{{ item.product.description }}</div>
+                                </td>
+                                <td class="py-4 text-center text-gray-700">{{ item.quantity }}</td>
+                                <td class="py-4 text-right text-gray-700">{{ item.product.price }} €</td>
+                                <td class="py-4 text-right font-bold text-gray-900">
+                                    {{ item.quantity * item.product.price }} €
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total -->
+            <div class="p-8 bg-indigo-900 text-white flex justify-between items-center">
+                <div class="text-xl font-light">Total à régler</div>
+                <div class="text-4xl font-black">{{ invoice.totalAmount }} €</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Tableau de bord</h1>
+    
+    <div class="row mt-4">
+        {# Résumé simplifié pour le moment #}
+        <div class="col-md-6">
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Chiffre d'affaires</h5>
+                    <p class="card-text h2">0,00 €</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-light mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Factures en attente</h5>
+                    <p class="card-text h2">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <h3>Navigation rapide</h3>
+        <div class="col-md-3">
+            <a href="{{ path('app_invoice_index') }}" class="btn btn-primary w-100 p-3">Factures</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('app_customer_index') }}" class="btn btn-secondary w-100 p-3">Clients</a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('app_product_index') }}" class="btn btn-info w-100 p-3 text-white">Produits</a>
+        </div>
+        <div class="col-md-3">
+            <a href="#" class="btn btn-dark w-100 p-3">Statistiques</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
