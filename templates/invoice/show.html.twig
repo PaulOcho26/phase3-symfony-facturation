@@ -37,7 +37,15 @@
                             <span class="mr-2">📧</span> Envoyer par mail
                         </button>
                     </form>
-                    
+                    {# BOUTON RELANCE (ORANGE) - À INSÉRER ICI #}
+                    {% if invoice.status == 'validée' %}
+                        <form method="post" action="{{ path('app_invoice_remind', {'id': invoice.id}) }}" onsubmit="return confirm('Relancer ce client par mail ?');" class="m-0">
+                            <input type="hidden" name="_token" value="{{ csrf_token('remind-email' ~ invoice.id) }}">
+                            <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center">
+                                <span class="mr-2">🔔</span> Relancer
+                            </button>
+                        </form>
+                    {% endif %}
                     {% if invoice.status == 'validée' %}
                         <form method="post" action="{{ path('app_invoice_pay', {'id': invoice.id}) }}" onsubmit="return confirm('Confirmer la réception du paiement ?');" class="m-0">
                             <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm">
