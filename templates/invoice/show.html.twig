@@ -11,15 +11,14 @@
             <a href="{{ path('app_invoice_index') }}" class="text-indigo-600 hover:underline text-sm flex items-center">
                 ← Retour à la liste
             </a>
-            <div class="flex space-x-3">
-                {# --- REMPLACE LE CONTENU DE CETTE DIV PAR CECI --- #}
+<div class="flex flex-wrap items-center gap-3">
                 {% if invoice.status == 'brouillon' %}
-                    <a href="{{ path('app_invoice_edit', {'id': invoice.id}) }}" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                    <a href="{{ path('app_invoice_edit', {'id': invoice.id}) }}" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm">
                         Modifier
                     </a>
 
-                    <form method="post" action="{{ path('app_invoice_validate', {'id': invoice.id}) }}" onsubmit="return confirm('Une fois validée, cette facture ne pourra plus être modifiée. Confirmer ?');">
-                        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                    <form method="post" action="{{ path('app_invoice_validate', {'id': invoice.id}) }}" onsubmit="return confirm('Une fois validée, cette facture ne pourra plus être modifiée. Confirmer ?');" class="m-0">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm">
                             Valider la facture
                         </button>
                     </form>
@@ -27,22 +26,26 @@
                     {{ include('invoice/_delete_form.html.twig') }}
                 {% endif %}
                 
-{% if invoice.status == 'validée' or invoice.status == 'payée' %}
-    {# On utilise <a> au lieu de <button> pour déclencher le téléchargement #}
-    <a href="{{ path('app_invoice_pdf', {'id': invoice.id}) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
-        Télécharger le PDF
-    </a>
-    
-    {# On ajoute le bouton "Payer" qui n'apparaît que si la facture est validée #}
-    {% if invoice.status == 'validée' %}
-        <form method="post" action="{{ path('app_invoice_pay', {'id': invoice.id}) }}" onsubmit="return confirm('Confirmer la réception du paiement ?');" class="inline">
-            <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
-                ✓ Marquer comme payée
-            </button>
-        </form>
-    {% endif %}
-{% endif %}
-                {# ------------------------------------------------ #}
+                {% if invoice.status == 'validée' or invoice.status == 'payée' %}
+                    <a href="{{ path('app_invoice_pdf', {'id': invoice.id}) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center">
+                        <span class="mr-2">📄</span> PDF
+                    </a>
+
+                    <form method="post" action="{{ path('app_invoice_send', {'id': invoice.id}) }}" onsubmit="return confirm('Envoyer cette facture par email au client ({{ invoice.customer.email }}) ?');" class="m-0">
+                    <input type="hidden" name="_token" value="{{ csrf_token('send-email' ~ invoice.id) }}">
+                        <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center">
+                            <span class="mr-2">📧</span> Envoyer par mail
+                        </button>
+                    </form>
+                    
+                    {% if invoice.status == 'validée' %}
+                        <form method="post" action="{{ path('app_invoice_pay', {'id': invoice.id}) }}" onsubmit="return confirm('Confirmer la réception du paiement ?');" class="m-0">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all shadow-sm">
+                                ✓ Marquer comme payée
+                            </button>
+                        </form>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
 

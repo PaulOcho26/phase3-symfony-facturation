@@ -65,6 +65,15 @@
 
             <!-- Page Content -->
             <div class="flex-1 overflow-y-auto p-8">
+             {# --- AJOUT DU BLOC DE MESSAGES ICI --- #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg shadow-sm border {{ label == 'success' ? 'bg-green-100 border-green-200 text-green-700' : 'bg-red-100 border-red-200 text-red-700' }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {# -------------------------------------- #}
                 {% block body %}{% endblock %}
             </div>
         </main>
